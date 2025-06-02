@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, {  useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const UserForm = () => {
     // Form state
@@ -7,37 +8,43 @@ const UserForm = () => {
     const [email, setEmail] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     // Handle form submission
     const handleSubmit = async (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        // Simple client-side validation
-        if (!username || !email) {
-            setErrorMessage('Both fields are required');
-            return;
-        }
+    if (!username || !email) {
+        setErrorMessage('Both fields are required');
+        return;
+    }
 
-        setErrorMessage('');
-        setIsLoading(true);
+    setErrorMessage('');
+    setIsLoading(true);
 
-        try {
-            const response = await axios.post('http://localhost:8081/api/user/add', {
-                username,
-                email
-            });
+    try {
+        const response = await axios.post('http://localhost:8081/api/user/add', {
+            username,
+            email
+        });
 
-            setEmail('');
-            setUsername('');
-            console.log('Registration Successful:', response.data);
-            alert('Registration Successful!');
-            // Redirect or clear form if needed
-        } catch (error) {
-            setIsLoading(false);
-            if (error.response) {
+        setEmail('');
+        setUsername('');
+        console.log('Registration Successful:', response.data);
+        alert('Registration Successful!');
+        navigate('/home'); // Redirect to home page after successful registration
+    } catch (error) {
+        setIsLoading(false);
+
+        if (error.response) {
+            // Check if email already exists (HTTP 409 Conflict)
+                if (error.response.status === 409) {
+                setErrorMessage('User with this email already exists. Please use a different email.');
+                } else {
                 setErrorMessage(error.response.data.message || 'Something went wrong!');
+                }
             } else {
-                setErrorMessage('Network Error');
+            setErrorMessage('Network Error');
             }
         }
     };
